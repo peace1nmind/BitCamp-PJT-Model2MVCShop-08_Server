@@ -1,11 +1,12 @@
 package com.model2.mvc.common;
 
+import javax.servlet.ServletContext;
 
 //==>리스트화면을 모델링(추상화/캡슐화)한 Bean 
 public class Search {
 	
 	///Field
-	private int currentPage;
+	private int currentPage = 1;
 	private String searchCondition;
 	private String searchKeyword;
 	private int pageSize;
@@ -16,10 +17,30 @@ public class Search {
 	private int endRowNum;
 	private int startRowNum;
 	
+	/* 개인추가항목 */
+	private String orderBy;		// ORDER BY 항목
+	private boolean desc;		// DESC 여부(ture: DESC, false: ASC)
+	int page = 1;
+	
+	
 	///Constructor
 	public Search() {
 	}
 	
+	public Search(ServletContext servletContext) {
+		if (servletContext != null) {
+			pageSize = Integer.parseInt(servletContext.getInitParameter("pageSize"));
+		} else {
+			throw new NullPointerException("servletContext is null");
+		}
+	}
+	
+	public Search(int currentPage, int pageSize) {
+		super();
+		this.currentPage = currentPage;
+		this.pageSize = pageSize;
+	}
+
 	///Method
 	public int getPageSize() {
 		return pageSize;
@@ -32,7 +53,21 @@ public class Search {
 		return currentPage;
 	}
 	public void setCurrentPage(int currentPage) {
+		if (currentPage == 0) {
+			currentPage = 1;
+		}
 		this.currentPage = currentPage;
+	}
+
+	public int getPage() {
+		return page;
+	}
+	public void setPage(int page) {
+		if (page==0) {
+			page = 1;
+		}
+		this.page = page;
+		currentPage = page;
 	}
 
 	public String getSearchCondition() {
@@ -46,7 +81,7 @@ public class Search {
 		return searchKeyword;
 	}
 	public void setSearchKeyword(String searchKeyword) {
-		this.searchKeyword = searchKeyword;
+		this.searchKeyword = searchKeyword.trim();
 	}
 	
 	//==> Select Query 시 ROWNUM 마지막 값 
@@ -57,12 +92,29 @@ public class Search {
 	public int getStartRowNum() {
 		return (getCurrentPage()-1)*getPageSize()+1;
 	}
+	
+	public String getOrderBy() {
+		return orderBy;
+	}
+
+	public void setOrderBy(String orderBy) {
+		this.orderBy = orderBy;
+	}
+
+	public boolean isDesc() {
+		return desc;
+	}
+
+	public void setDesc(boolean desc) {
+		this.desc = desc;
+	}
 
 	@Override
 	public String toString() {
 		return "Search [currentPage=" + currentPage + ", searchCondition="
 				+ searchCondition + ", searchKeyword=" + searchKeyword
 				+ ", pageSize=" + pageSize + ", endRowNum=" + endRowNum
-				+ ", startRowNum=" + startRowNum + "]";
+				+ ", startRowNum=" + startRowNum + ""
+				+ ", page=" + page + ", orderBy=" + orderBy +", desc=" + desc +" ]";
 	}
 }
