@@ -4,19 +4,8 @@ package com.model2.mvc.service.domain;
 import java.sql.Date;
 import java.util.Map;
 
-import org.apache.ibatis.session.SqlSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.stereotype.Repository;
-import org.springframework.test.context.ContextConfiguration;
-
 import com.model2.mvc.service.TranCodeMapper;
-import com.model2.mvc.service.product.ProductDao;
-import com.model2.mvc.service.product.impl.ProductDaoImpl;
-import com.model2.mvc.service.user.UserDao;
-import com.model2.mvc.service.user.impl.UserDaoImpl;
+
 
 public class Purchase {
 
@@ -36,52 +25,6 @@ public class Purchase {
 	private String dlvyDate;		// DLVY_DATE			배송 희망 일자
 	//														(배송이 완료되면 배송된 날짜로 변경하기)
 
-//	@Autowired
-//	@Qualifier("productDaoImpl")
-//	private ProductDao productDao;
-//	
-//	@Autowired
-//	@Qualifier("userDaoImpl")
-//	private UserDao userDao;
-//	
-//	public void setProductDao(ProductDao productDao) {
-//		this.productDao = productDao;
-//	}
-//
-//	public void setUserDao(UserDao userDao) {
-//		this.userDao = userDao;
-//	}
-//	
-//	private int prodNo;
-//	private String buyerId;
-//	
-//	public int getProdNo() {
-//		return prodNo;
-//	}
-//
-//	public void setProdNo(int prodNo) {
-//		this.prodNo = prodNo;
-//		try {
-//			purchaseProd = productDao.selectProduct(prodNo);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			
-//		}
-//	}
-//
-//	public String getBuyerId() {
-//		return buyerId;
-//	}
-//
-//	public void setBuyerId(String buyerId) {
-//		this.buyerId = buyerId;
-//		try {
-//			buyer = userDao.getUser(buyerId);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			
-//		}
-//	}
 
 	// Constructor
 	public Purchase() {

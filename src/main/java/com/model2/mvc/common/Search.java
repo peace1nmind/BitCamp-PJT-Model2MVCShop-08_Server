@@ -22,6 +22,10 @@ public class Search {
 	private boolean desc;		// DESC 여부(ture: DESC, false: ASC)
 	int page = 1;
 	
+	/* 범위검색을 위한 필드 */
+	private int searchPriceBigger;
+	private int searchPriceLess;
+	
 	
 	///Constructor
 	public Search() {
@@ -84,6 +88,22 @@ public class Search {
 		this.searchKeyword = searchKeyword.trim();
 	}
 	
+	public int getSearchPriceBigger() {
+		return searchPriceBigger;
+	}
+
+	public void setSearchPriceBigger(int searchPriceBigger) {
+		this.searchPriceBigger = searchPriceBigger;
+	}
+
+	public int getSearchPriceLess() {
+		return searchPriceLess;
+	}
+
+	public void setSearchPriceLess(int searchPriceLess) {
+		this.searchPriceLess = searchPriceLess;
+	}
+
 	//==> Select Query 시 ROWNUM 마지막 값 
 	public int getEndRowNum() {
 		return getCurrentPage()*getPageSize();
