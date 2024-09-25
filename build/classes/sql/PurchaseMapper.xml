@@ -8,10 +8,10 @@
 	
 	<!-- DB Column과 VO의 Field 맵핑 -->
 	<!-- TypeHandler가 필요하다 -->
+	<!-- 		<result property="purchaseProd.prodNo" 	column="prod_no" 			jdbcType="INTEGER"/> -->
+	<!-- 		<result property="buyer.userId" 		column="buyer_id" 			jdbcType="VARCHAR"/> -->
 	<resultMap type="purchase" id="purchaseSelectMap">
-		<result property="tranNo" 				column="tran_no" 			jdbcType="INTEGER"/>
-		<result property="purchaseProd.prodNo" 	column="prod_no" 			jdbcType="INTEGER"/>
-		<result property="buyer.userId" 		column="buyer_id" 			jdbcType="VARCHAR"/>	
+		<id 	property="tranNo" 				column="tran_no" 			jdbcType="INTEGER"/>
 		<result property="paymentOption" 		column="payment_option" 	jdbcType="CHAR"/>
 		<result property="receiverName" 		column="receiver_name" 		jdbcType="VARCHAR"/>
 		<result property="receiverPhone" 		column="receiver_phone" 	jdbcType="VARCHAR"/>
@@ -20,6 +20,8 @@
 		<result property="tranCode" 			column="tran_status_code" 	jdbcType="CHAR"/>
 		<result property="orderDate" 			column="order_date" 		jdbcType="DATE"/>
 		<result property="dlvyDate" 			column="dlvy_date" 			jdbcType="DATE"/>
+		<association property="purchaseProd" 	column="prod_no"			select="ProductMapper.selectProduct"></association>
+		<association property="buyer"			column="buyer_id"			select="UserMapper.getUser"></association>
 	</resultMap>
 	
 	
@@ -140,24 +142,96 @@
 	<!-- selectSaleList: 판매완료 상품리스트 조회 (관리자) -->
 	<!-- RowBounds 사용 -->
 	<select id="selectSaleList"
+			parameterType="search"
 			resultMap="purchaseSelectMap">
 	
-		SELECT * 
-		FROM transaction
-		WHERE tran_status_code &gt;= 2
-		ORDER BY tran_status_code, order_date DESC, tran_no
+		SELECT t.* 
+		FROM transaction t, 
+			(SELECT
+			prod_no
+			FROM product
+			
+			<where>
+				pro_tran_code &gt;= '2'
+				<if test="searchKeyword != null and searchKeyword != ''">
+					<choose>
+						<!-- 상품명 검색 -->
+						<when test="searchCondition == 1">
+							AND prod_name LIKE '%'||#{searchKeyword}||'%'
+						</when>
+						
+						<!-- 상품설명 -->
+						<when test="searchCondition == 2">
+							AND prod_detail LIKE '%'||#{searchKeyword}||'%'
+						</when>
+						
+						<!-- 기본 상품번호 검색 -->
+						<otherwise>
+							AND prod_no LIKE '%'||#{searchKeyword}||'%'
+						</otherwise>
+					</choose>
+				</if>
+				
+				<!-- 가격 범위검색 -->
+				<if test="searchPriceBigger != 0">
+					AND price &gt;= #{searchPriceBigger:INTEGER}
+				</if>
+				<if test="searchPriceLess != 0">
+					AND price &lt;= #{searchPriceLess:INTEGER}
+				</if>
+				
+			</where>) p
+		WHERE t.prod_no = p.prod_no
+		AND t.tran_status_code &gt;= 2
+		ORDER BY t.tran_status_code, t.order_date DESC, t.tran_no
 			
 	</select>
 	
 	
 	<!-- countSaleList -->
 	<select id="countSaleList"
+			parameterType="search"
 			resultType="java.lang.Integer">
 		
 		SELECT COUNT(*)
-		FROM (	SELECT * 
-				FROM transaction
-				WHERE tran_status_code &gt;= 2
+		FROM (	SELECT t.* 
+				FROM transaction t, 
+					(SELECT
+					prod_no
+					FROM product
+					
+					<where>
+						pro_tran_code &gt;= '2'
+						<if test="searchKeyword != null and searchKeyword != ''">
+							<choose>
+								<!-- 상품명 검색 -->
+								<when test="searchCondition == 1">
+									AND prod_name LIKE '%'||#{searchKeyword}||'%'
+								</when>
+								
+								<!-- 상품설명 -->
+								<when test="searchCondition == 2">
+									AND prod_detail LIKE '%'||#{searchKeyword}||'%'
+								</when>
+								
+								<!-- 기본 상품번호 검색 -->
+								<otherwise>
+									AND prod_no LIKE '%'||#{searchKeyword}||'%'
+								</otherwise>
+							</choose>
+						</if>
+						
+						<!-- 가격 범위검색 -->
+						<if test="searchPriceBigger != 0">
+							AND price &gt;= #{searchPriceBigger:INTEGER}
+						</if>
+						<if test="searchPriceLess != 0">
+							AND price &lt;= #{searchPriceLess:INTEGER}
+						</if>
+						
+					</where>) p
+				WHERE t.prod_no = p.prod_no
+				AND t.tran_status_code &gt;= 2
 			 )
 	
 	</select>

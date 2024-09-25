@@ -125,7 +125,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 		
 		try {
 			map.put("list", purchaseDao.selectSaleList(search));
-			map.put("count", purchaseDao.countSaleList());
+			map.put("count", purchaseDao.countSaleList(search));
 			
 		} catch (Exception e) {
 			e.printStackTrace();

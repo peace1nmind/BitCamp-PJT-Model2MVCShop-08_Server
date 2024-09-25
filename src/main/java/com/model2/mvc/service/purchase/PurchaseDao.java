@@ -9,38 +9,38 @@ import com.model2.mvc.service.domain.Purchase;
 public interface PurchaseDao {
 
 	// 구매정보 조회
-	public Purchase selectPurchase(int tranNo) throws Exception;
+	public Purchase selectPurchase(int tranNo);
 	
 	// prodNo로 구매정보 조회
-	public Purchase selectPurchaseByProd(int prodNo) throws Exception;
+	public Purchase selectPurchaseByProd(int prodNo);
 	
 	// 구매
-	public int insertPurchase(Purchase purchase) throws Exception;
+	public int insertPurchase(Purchase purchase);
 	
 	// 유저 구매이력 조회 (구매완료~배송중)
-	public List<Purchase> selectPurchaseList(Search search, String buyerId) throws Exception;
+	public List<Purchase> selectPurchaseList(Search search, String buyerId);
 	
 	// 구매이력 (구매완료~배송중) count
-	public int countPurchaseList(String buyerId) throws Exception;
+	public int countPurchaseList(String buyerId);
 	
 	// 유저 구매이력 조회 (배송완료~)
-	public List<Purchase> selectPurchaseHistoryList(Search search, String buyerId) throws Exception;
+	public List<Purchase> selectPurchaseHistoryList(Search search, String buyerId);
 	
 	// 구매이력 (배송완료~) count
-	public int countPurchaseHistoryList(String buyerId) throws Exception;
+	public int countPurchaseHistoryList(String buyerId);
 	
 	// 판매완료 상품리스트 조회 (관리자)
 	// RowBounds 사용하기
-	public List<Purchase> selectSaleList(Search search) throws Exception;
+	public List<Purchase> selectSaleList(Search search);
 	
 	// 판매완료 상품리스트 count
-	public int countSaleList() throws Exception;
+	public int countSaleList(Search search);
 	
 	// 구매정보 수정
-	public void updatePurchase(Purchase purchase) throws Exception;
+	public void updatePurchase(Purchase purchase);
 	
 	// tranCode 수정
-	public void updateTranStatusCode(Purchase purchase) throws Exception;
+	public void updateTranStatusCode(Purchase purchase);
 	
 }
 // class end

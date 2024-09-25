@@ -26,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public Product addProduct(Product product) throws Exception {
+	public Product addProduct(Product product) {
 		
 		productDao.insertProduct(product);
 		
@@ -34,13 +34,13 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public Product getProduct(int prodNo) throws Exception {
+	public Product getProduct(int prodNo) {
 		
 		return productDao.selectProduct(prodNo);
 	}
 
 	@Override
-	public Map<String, Object> getProductList(Search search) throws Exception {
+	public Map<String, Object> getProductList(Search search) {
 		
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("list", productDao.selectProductList(search));
@@ -50,7 +50,7 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public Product updateProduct(Product product) throws Exception {
+	public Product updateProduct(Product product) {
 		
 		productDao.updateProduct(product);
 		
@@ -58,7 +58,7 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public void updateTranCode(int prodNo, String proTranCode) throws Exception {
+	public void updateTranCode(int prodNo, String proTranCode) {
 		
 		Product product = productDao.selectProduct(prodNo);
 		product.setProTranCode(proTranCode);

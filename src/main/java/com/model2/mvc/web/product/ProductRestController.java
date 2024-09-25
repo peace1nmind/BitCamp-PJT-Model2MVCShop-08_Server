@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,7 +40,7 @@ import com.model2.mvc.service.purchase.PurchaseService;
 // W 24.09.12.start 
 
 @RestController
-@RequestMapping("/product/*")
+@RequestMapping("/json/product/*")
 public class ProductRestController {
 
 	// Field
@@ -58,6 +57,9 @@ public class ProductRestController {
 	
 	@Value("#{commonProperties['pageSize']}")
 	int pageSize;
+	
+	// JSON 형식으로 보낼 Map
+	private Map<String, Object> responseMap;
 
 	// Constructor
 	public ProductRestController() {
@@ -66,20 +68,20 @@ public class ProductRestController {
 
 	// Method
 	// 상품목록
-	@RequestMapping("/json/listProduct")
-	public Map<String, Object> listProduct(@RequestParam("menu") String menu,
-										   @ModelAttribute("search") Search search,
-										   @RequestParam(name = "salePage", required = false, defaultValue = "1") int salePage
-										   ) throws Exception {
+	@RequestMapping("/listProduct")
+	public Map listProduct(@RequestParam("menu") String menu,
+						   @ModelAttribute("search") Search search,
+						   @RequestParam(name = "salePage", required = false, defaultValue = "1") int salePage
+						   ) throws Exception {
 		
 		System.out.println("/listProduct");
 		
-		Map<String, Object> responseMap = new HashMap<String, Object>();
+		responseMap = new HashMap<String, Object>();
 		
 		// 상품 목록 / 상품 관리 구분 로직
 		// menu: search , manage
 		responseMap.put("menu", menu);
-		responseMap.put("title", (menu!=null && menu.equals("search"))? "상품 목록조회" : "상품관리");
+		responseMap.put("title", (menu!=null && menu.equals("search"))? "상품 목록조회" : "상품관리 (판매전)")	;
 		responseMap.put("navi", (menu!=null && menu.equals("search"))? "getProduct" : "updateProduct");
 		
 		
@@ -91,17 +93,19 @@ public class ProductRestController {
 		// 검색한 리스트값들을 다루는 로직 (list, count)
 		/* 판매중인 상품들 (listProduct) */
 		Map<String, Object> map = productService.getProductList(search);
-		responseMap.put("map", map);
-
+		responseMap.put("map" ,map);
 		
 		// 페이지를 다루는 로직
 		Paging paging = new Paging((int) map.get("count"), search.getCurrentPage(), pageSize, pageUnit);
-		responseMap.put("paging", paging);
+		responseMap.put("paging" ,paging);
 		
 		
 		/* 구매완료 상품들 (listSale) */
 		if (menu.equals("manage")) {
-			Search saleSearch = new Search(salePage, pageSize);
+			Search saleSearch = search;
+			saleSearch.setCurrentPage(salePage);
+			saleSearch.setPageSize(pageSize);
+			
 			Map<String, Object> saleMap = purchaseService.getSaleList(saleSearch);
 			responseMap.put("saleMap", saleMap);
 			
@@ -116,13 +120,17 @@ public class ProductRestController {
 	
 	
 	// 상품정보
-	@RequestMapping("/json/getProduct/{prodNo}")
+	@RequestMapping("/getProduct/{prodNo}")
 	public Product getProduct(@PathVariable("prodNo") String prodNo,
-										  HttpServletRequest request,
-										  HttpServletResponse response,
-										  Model model) throws NumberFormatException, Exception {
+							 HttpServletRequest request,
+							 HttpServletResponse response) 
+							 throws NumberFormatException, Exception {
 		
 		System.out.println("/getProduct");
+		
+		// 상품정보를 가져오는 로직
+		Product product = productService.getProduct(Integer.parseInt(prodNo));
+		
 		
 		// 최근 본 상품 리스트 로직
 		Cookie[] cookies = request.getCookies();
@@ -169,142 +177,138 @@ public class ProductRestController {
 		history.setValue(value);
 		response.addCookie(history);
 		
-		return productService.getProduct(Integer.parseInt(prodNo));
+		return product;
 	}
 	
 	
-//	// 상품정보 수정
-//	@GetMapping("/updateProduct")
-//	public String updateProduct(@RequestParam("prodNo") int prodNo,
-//								Model model) throws Exception {
-//		
-//		System.out.println("/updateProduct GET");
-//		
-//		model.addAttribute("product", productService.getProduct(prodNo));
-//		
-//		return "forward:/product/updateProductView.jsp";
-//	}
-//	
-//	@PostMapping("/updateProduct")
-//	public String updateProduct(HttpServletRequest request) 
-//								throws Exception {
-//		
-//		System.out.println("/updateProduct POST");
-//		
-//		int no = 1;
-//		
-//		/* 파일 업로드 변경 필요 */
-//		if (FileUpload.isMultipartContent(request)) {
-//			String uploadDir = "F:BitCamp/workspace/07.Model2MVCShop(URI,pattern)/src/main/webapp/images/uploadFiles/";
-//			
-//			DiskFileUpload fileUpload = new DiskFileUpload();
-//			fileUpload.setRepositoryPath(uploadDir);
-//			
-//			// 최대 업로드 사이즈 설정 (-1= 제한 없음)
-//			// 1024 * 1024 * 10
-//			fileUpload.setSizeMax(1024 * 1024 * 10);
-//			fileUpload.setSizeThreshold(1024 * 100);
-//			
-//			System.out.println(request.getContentLength());
-//			System.out.println(fileUpload.getSizeMax());
-//			
-//			if (request.getContentLength() < fileUpload.getSizeMax()) {
-//				
-//				Product product = new Product();
-//				
-//				// 문자열을 특정 구분자 기준으로 토큰(문자열 조각)으로 나누는데 사용하는 클래스(split 과 같음)
-//				StringTokenizer token = null;
-//				
-//				List<FileItem> fileItemList = fileUpload.parseRequest(request);
-//				
-//				// html에서 받은 값들의 개수
-//				int size = fileItemList.size();
-//				
-//				System.out.println(size);
-//				
-//				for (FileItem fileItem : fileItemList) {
-//					System.out.println(fileItem);
-//					// 파일 형식/파라미터 인지 확인 (파라미터면 true)
-//					if (fileItem.isFormField()) {	// 파라미터라면
-//						if (fileItem.getFieldName().equals("manuDate")) {
-//							
-//							String manuDate = "";
-//							
-//							if (fileItem.getString("euc-kr").contains("-")) {
-//								token = new StringTokenizer(fileItem.getString("euc-kr"), "-");
-//								manuDate = token.nextToken() + token.nextToken() + token.nextToken();
-//							} else {
-//								manuDate = fileItem.getString("euc-kr");
-//							}
-//							
-//							product.setManuDate(manuDate);
-//							
-//						} else if (fileItem.getFieldName().equals("prodName")) {
-//							product.setProdName(fileItem.getString("euc-kr"));
-//							
-//						} else if (fileItem.getFieldName().equals("prodDetail")) {
-//							product.setProdDetail(fileItem.getString("euc-kr"));
-//							
-//						} else if (fileItem.getFieldName().equals("price")) {
-//							product.setPrice(Integer.parseInt(fileItem.getString("euc-kr")));
-//							
-//						} else if (fileItem.getFieldName().equals("prodNo")) {
-//							product.setProdNo(Integer.parseInt(fileItem.getString("euc-kr")));
-//
-//						}
-//						
-//						
-//					} else { // 파일 형식이면
-//						if (fileItem.getSize() > 0) { // 파일이 있으면
-//							int index = (fileItem.getName().contains("\\"))? 
-//											fileItem.getName().lastIndexOf("\\") : 
-//											fileItem.getName().lastIndexOf("/");
-//							
-//							String fileName = fileItem.getName().substring(index+1);
-//							
-//							product.setFileName(fileName);
-//							
-//							try {
-//								File uploadFile = new File(uploadDir, fileName);
-//								fileItem.write(uploadFile);
-//								
-//								// 파일 업로드 처리 후
-//								Thread.sleep(2000); // 2초 정도 대기
-//								
-//							} catch (Exception e) {
-//								e.printStackTrace();
-//								
-//							}
-//							
-//						} else { // 파일이 없으면
-//							product.setFileName("empty.GIF");
-//							
-//						}
-//					}
-//				} // for end	
-//				
-//				product = productService.updateProduct(product);
-//				
-//				request.setAttribute("product", product); 
-//					
-//			} else {
-//				// 업로드하는 파일이 setSizeMax보다 큰 경우
-//				int overSize = (request.getContentLength() / 1000000);
-//				
-//				System.out.println("<script>alert('파일의 크기는 1MB까지 됩니다. 올리신 파일 용량은 " + overSize + "MB 입니다.');");
-//				System.out.println("history.back();</script>");
-//			}
-//			
-//		} else {
-//			System.out.println("인코딩 타입이 multipart/form-data가 아닙니다");
-//		}
-//		
-//		
-////		product = productService.updateProduct(product);
-////		model.addAttribute("product", product);
-//		
-//		return "forward:/product/updateProduct.jsp";
-//	}
+	// 상품정보 수정
+	@GetMapping("/updateProduct/{prodNo}")
+	public Product updateProduct(@PathVariable("prodNo") int prodNo) 
+								throws Exception {
+		
+		System.out.println("/updateProduct GET");
+		
+		return productService.getProduct(prodNo);
+	}
+	
+	@PostMapping("/updateProduct")
+	public Product updateProduct(HttpServletRequest request) 
+								throws Exception {
+		
+		System.out.println("/updateProduct POST");
+		
+		int no = 1;
+		
+		Product product = new Product();
+		
+		/* 파일 업로드 변경 필요 */
+		if (FileUpload.isMultipartContent(request)) {
+			String uploadDir = "F:BitCamp/workspace/07.Model2MVCShop(URI,pattern)/src/main/webapp/images/uploadFiles/";
+			
+			DiskFileUpload fileUpload = new DiskFileUpload();
+			fileUpload.setRepositoryPath(uploadDir);
+			
+			// 최대 업로드 사이즈 설정 (-1= 제한 없음)
+			// 1024 * 1024 * 10
+			fileUpload.setSizeMax(1024 * 1024 * 10);
+			fileUpload.setSizeThreshold(1024 * 100);
+			
+			System.out.println(request.getContentLength());
+			System.out.println(fileUpload.getSizeMax());
+			
+			if (request.getContentLength() < fileUpload.getSizeMax()) {
+				
+				// 문자열을 특정 구분자 기준으로 토큰(문자열 조각)으로 나누는데 사용하는 클래스(split 과 같음)
+				StringTokenizer token = null;
+				
+				List<FileItem> fileItemList = fileUpload.parseRequest(request);
+				
+				// html에서 받은 값들의 개수
+				int size = fileItemList.size();
+				
+				System.out.println(size);
+				
+				for (FileItem fileItem : fileItemList) {
+					System.out.println(fileItem);
+					// 파일 형식/파라미터 인지 확인 (파라미터면 true)
+					if (fileItem.isFormField()) {	// 파라미터라면
+						if (fileItem.getFieldName().equals("manuDate")) {
+							
+							String manuDate = "";
+							
+							if (fileItem.getString("euc-kr").contains("-")) {
+								token = new StringTokenizer(fileItem.getString("euc-kr"), "-");
+								manuDate = token.nextToken() + token.nextToken() + token.nextToken();
+							} else {
+								manuDate = fileItem.getString("euc-kr");
+							}
+							
+							product.setManuDate(manuDate);
+							
+						} else if (fileItem.getFieldName().equals("prodName")) {
+							product.setProdName(fileItem.getString("euc-kr"));
+							
+						} else if (fileItem.getFieldName().equals("prodDetail")) {
+							product.setProdDetail(fileItem.getString("euc-kr"));
+							
+						} else if (fileItem.getFieldName().equals("price")) {
+							product.setPrice(Integer.parseInt(fileItem.getString("euc-kr")));
+							
+						} else if (fileItem.getFieldName().equals("prodNo")) {
+							product.setProdNo(Integer.parseInt(fileItem.getString("euc-kr")));
+
+						}
+						
+						
+					} else { // 파일 형식이면
+						if (fileItem.getSize() > 0) { // 파일이 있으면
+							int index = (fileItem.getName().contains("\\"))? 
+											fileItem.getName().lastIndexOf("\\") : 
+											fileItem.getName().lastIndexOf("/");
+							
+							String fileName = fileItem.getName().substring(index+1);
+							
+							product.setFileName(fileName);
+							
+							try {
+								File uploadFile = new File(uploadDir, fileName);
+								fileItem.write(uploadFile);
+								
+								// 파일 업로드 처리 후
+								Thread.sleep(2000); // 2초 정도 대기
+								
+							} catch (Exception e) {
+								e.printStackTrace();
+								
+							}
+							
+						} else { // 파일이 없으면
+							product.setFileName("empty.GIF");
+							
+						}
+					}
+				} // for end	
+				
+				product = productService.updateProduct(product);
+					
+			} else {
+				// 업로드하는 파일이 setSizeMax보다 큰 경우
+				int overSize = (request.getContentLength() / 1000000);
+				
+				System.out.println("<script>alert('파일의 크기는 1MB까지 됩니다. 올리신 파일 용량은 " + overSize + "MB 입니다.');");
+				System.out.println("history.back();</script>");
+			}
+			
+		} else {
+			System.out.println("인코딩 타입이 multipart/form-data가 아닙니다");
+		}
+		
+		
+//		product = productService.updateProduct(product);
+//		responseMap.put("product", product);
+		
+		return product;
+	}
 //	
 //	
 //	// 상품등록

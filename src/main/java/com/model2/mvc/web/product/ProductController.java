@@ -62,7 +62,7 @@ public class ProductController {
 
 	// Method
 	// 상품목록
-	@RequestMapping("/listProduct")
+	@RequestMapping({"/listProduct", "/listSale"})
 	public String listProduct(@RequestParam("menu") String menu,
 							  @ModelAttribute("search") Search search,
 							  @RequestParam(name = "salePage", required = false, defaultValue = "1") int salePage,
@@ -73,7 +73,7 @@ public class ProductController {
 		// 상품 목록 / 상품 관리 구분 로직
 		// menu: search , manage
 		model.addAttribute("menu" ,menu);
-		model.addAttribute("title", (menu!=null && menu.equals("search"))? "상품 목록조회" : "상품관리");
+		model.addAttribute("title", (menu!=null && menu.equals("search"))? "상품 목록조회" : "상품관리 (판매전)");
 		model.addAttribute("navi", (menu!=null && menu.equals("search"))? "getProduct" : "updateProduct");
 		
 		
@@ -94,7 +94,13 @@ public class ProductController {
 		
 		/* 구매완료 상품들 (listSale) */
 		if (menu.equals("manage")) {
-			Search saleSearch = new Search(salePage, pageSize);
+			Search saleSearch = search;
+			saleSearch.setCurrentPage(salePage);
+			saleSearch.setPageSize(pageSize);
+			
+			System.out.println(String.format("\n\nsearch= %s \n\n", search));
+			System.out.println(String.format("\n\nsaleSearch=  %s \n\n", saleSearch));
+			
 			Map<String, Object> saleMap = purchaseService.getSaleList(saleSearch);
 			model.addAttribute("saleMap", saleMap);
 			

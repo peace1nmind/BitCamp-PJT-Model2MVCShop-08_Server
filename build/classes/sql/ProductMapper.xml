@@ -8,7 +8,7 @@
 	
 	<!-- DB Column과 VO의 Field 맵핑 -->
 	<resultMap type="product" id="productSelectMap">
-		<result property="prodNo" 		column="prod_no" 			jdbcType="INTEGER"/>
+		<id 	property="prodNo" 		column="prod_no" 			jdbcType="INTEGER"/>
 		<result property="prodName" 	column="prod_name" 			jdbcType="VARCHAR"/>
 		<result property="prodDetail" 	column="prod_detail" 		jdbcType="VARCHAR"/>
 		<result property="manuDate" 	column="manufacture_day" 	jdbcType="VARCHAR"/>
@@ -36,10 +36,9 @@
 						AND prod_name LIKE '%'||#{searchKeyword}||'%'
 					</when>
 					
-					<!-- 가격 검색 -->
-					<!-- TODO 따로 가격 범위 기능추가 필요 -->
+					<!-- 상품설명 -->
 					<when test="searchCondition == 2">
-						AND price &lt;= #{searchKeyword}
+						AND prod_detail LIKE '%'||#{searchKeyword}||'%'
 					</when>
 					
 					<!-- 기본 상품번호 검색 -->
@@ -86,11 +85,10 @@
 								AND prod_name LIKE '%'||#{searchKeyword}||'%'
 							</when>
 							
-							<!-- 가격 검색 -->
-							<!-- TODO 따로 가격 범위 기능추가 필요 -->
-							<when test="searchCondition == 2">
-								AND price &lt;= #{searchKeyword}
-							</when>
+							<!-- 상품설명 -->
+						<when test="searchCondition == 2">
+							AND prod_detail LIKE '%'||#{searchKeyword}||'%'
+						</when>
 							
 							<!-- 기본 상품번호 검색 -->
 							<otherwise>
